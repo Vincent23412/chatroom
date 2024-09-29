@@ -1,0 +1,94 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>index</title>
+</head>
+<body>
+  <h1>WebSocket</h1>
+  <input type="text" id="messageInput" placeholder="输入消息">
+  <button id="sendButton">发送</button>
+  <button id="closeButton">断开连接</button>
+  <button id="closeAllButton">關閉全部</button>
+
+  <pre id="log"></pre>
+
+  <script>
+    const log = document.getElementById('log');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+    const closeButton = document.getElementById('closeButton'); // 获取关闭按钮
+
+    // 建立 WebSocket 连接
+    let socket = new WebSocket(`ws://${window.location.host}/ws`);
+
+    // 当连接打开时
+    socket.addEventListener('open', () => {
+      log.textContent += 'WebSocket 连接已建立。\n';
+    });
+
+    // 接收服务器消息
+    socket.addEventListener('message', (event) => {
+      log.textContent += `收到服务器消息：${event.data}\n`;
+    });
+
+    // 发送消息到服务器
+    sendButton.addEventListener('click', () => {
+      const message = messageInput.value;
+      socket.send(message);
+      log.textContent += `发送消息：${message}\n`;
+      messageInput.value = '';
+    });
+
+    // 处理连接关闭
+    socket.addEventListener('close', () => {
+      log.textContent += 'WebSocket 连接已关闭。\n';
+    });
+
+    // 处理错误
+    socket.addEventListener('error', (event) => {
+      log.textContent += `WebSocket 发生错误：${event}\n`;
+    });
+
+    closeButton.addEventListener('click', () => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.close(); // 关闭 WebSocket 连接
+        log.textContent += '已手动关闭 WebSocket 连接。\n';
+    } else {
+        log.textContent += 'WebSocket 连接已关闭或未建立。\n';
+    }
+
+    // 发送请求到服务器的 /close 路径
+    fetch('/close', { method: 'POST' })
+        .then(response => response.text())
+        .then(data => {
+            log.textContent += `服务器响应：${data}\n`;
+        })
+        .catch(error => {
+            log.textContent += `请求 /close 失败：${error}\n`;
+        });
+    });
+
+    document.getElementById('closeAllButton').addEventListener('click', function() {
+            // 假設 "deleteAll" 是你的伺服器要接受的GET請求的端點
+            fetch('/closeAll', {
+                method: 'GET'
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('全部已關閉');
+                } else {
+                    alert('關閉失敗');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('發生錯誤');
+            });
+        });
+
+
+  </script>
+</body>
+</html>
