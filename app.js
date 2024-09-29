@@ -20,7 +20,7 @@ app.get('/health', (req, res, next)=>{
     res.status(200).send('health'); 
 });
 
-app.post('/close', (req, res) => {
+app.get('/close', (req, res) => {
     console.log('收到客户端的 /close 请求');
     res.status(200).send('服务器已处理关闭请求');
 });

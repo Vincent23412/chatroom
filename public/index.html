@@ -60,10 +60,9 @@
     }
 
     // 发送请求到服务器的 /close 路径
-    fetch('/close', { method: 'POST' })
-        .then(response => response.text())
+    fetch('/close', { method: 'get' })
         .then(data => {
-            log.textContent += `服务器响应：${data}\n`;
+            log.textContent += `服务器响应\n`;
         })
         .catch(error => {
             log.textContent += `请求 /close 失败：${error}\n`;
