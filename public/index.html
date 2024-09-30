@@ -30,7 +30,20 @@
 
     // 接收服务器消息
     socket.addEventListener('message', (event) => {
-      log.textContent += `收到服务器消息：${event.data}\n`;
+      const data = JSON.parse(event.data);
+      console.log(data);
+      if (data.context === 'user')
+      {
+        log.textContent += `使用者代號：${data.uuid}\n`;
+      }
+      else if (data.context === 'message')
+      {
+        log.textContent += `接收消息：${data.message}\n`;
+      }
+      else if (data.context === 'close')
+      {
+        log.textContent += `關閉連線：${data.uuid}\n`;
+      }
     });
 
     // 发送消息到服务器

@@ -21,14 +21,15 @@ app.get('/health', (req, res, next)=>{
 });
 
 app.get('/close', (req, res) => {
-    console.log('收到客户端的 /close 请求');
-    res.status(200).send('服务器已处理关闭请求');
+    res.status(200).send('close connection');
 });
 
 app.get('/closeAll', (req, res) => {
     connections.forEach((ws) => {
+        console.log(ws); 
         ws.close(); 
     })
+    res.status(200).send('close all connection');
 })
 
 server.on('upgrade', function upgrade(request, socket, head) {
