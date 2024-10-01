@@ -1,4 +1,3 @@
-<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -10,7 +9,7 @@
   <input type="text" id="messageInput" placeholder="输入消息">
   <button id="sendButton">发送</button>
   <button id="closeButton">断开连接</button>
-  <button id="closeAllButton">關閉全部</button>
+  <button id="closeAllButton">关闭全部</button>
 
   <pre id="log"></pre>
 
@@ -21,7 +20,7 @@
     const closeButton = document.getElementById('closeButton'); // 获取关闭按钮
 
     // 建立 WebSocket 连接
-    let socket = new WebSocket(`ws://${window.location.host}/ws`);
+    const socket = new WebSocket('wss://chatroom-3024.onrender.com/ws');
 
     // 当连接打开时
     socket.addEventListener('open', () => {
@@ -30,27 +29,32 @@
 
     // 接收服务器消息
     socket.addEventListener('message', (event) => {
-      const data = JSON.parse(event.data);
-      console.log(data);
-      if (data.context === 'user')
-      {
-        log.textContent += `使用者代號：${data.uuid}\n`;
-      }
-      else if (data.context === 'message')
-      {
-        log.textContent += `接收消息：${data.message}\n`;
-      }
-      else if (data.context === 'close')
-      {
-        log.textContent += `關閉連線：${data.uuid}\n`;
+      try {
+        const data = JSON.parse(event.data);
+        console.log(data);
+
+        if (data.context === 'user') {
+          log.textContent += `使用者代号：${data.uuid}\n`;
+        } else if (data.context === 'message') {
+          log.textContent += `接收消息：${data.message}\n`;
+        } else if (data.context === 'close') {
+          log.textContent += `关闭连接：${data.uuid}\n`;
+        }
+      } catch (error) {
+        log.textContent += `解析消息时出错：${error.message}\n`;
+        console.error('Message parsing error:', error);
       }
     });
 
     // 发送消息到服务器
     sendButton.addEventListener('click', () => {
       const message = messageInput.value;
-      socket.send(message);
-      log.textContent += `发送消息：${message}\n`;
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(message);
+        log.textContent += `发送消息：${message}\n`;
+      } else {
+        log.textContent += '无法发送消息，WebSocket 未连接。\n';
+      }
       messageInput.value = '';
     });
 
@@ -61,46 +65,44 @@
 
     // 处理错误
     socket.addEventListener('error', (event) => {
-      log.textContent += `WebSocket 发生错误：${event}\n`;
+      log.textContent += `WebSocket 发生错误：${event.message}\n`;
+      console.error('WebSocket error:', event);
     });
 
+    // 手动关闭 WebSocket 连接
     closeButton.addEventListener('click', () => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
+      if (socket && socket.readyState === WebSocket.OPEN) {
         socket.close(); // 关闭 WebSocket 连接
         log.textContent += '已手动关闭 WebSocket 连接。\n';
-    } else {
+      } else {
         log.textContent += 'WebSocket 连接已关闭或未建立。\n';
-    }
+      }
 
-    // 发送请求到服务器的 /close 路径
-    fetch('/close', { method: 'get' })
+      // 发送请求到服务器的 /close 路径
+      fetch('/close', { method: 'get' })
+        .then(response => response.text())
         .then(data => {
-            log.textContent += `服务器响应\n`;
+          log.textContent += `服务器响应：${data}\n`;
         })
         .catch(error => {
-            log.textContent += `请求 /close 失败：${error}\n`;
+          log.textContent += `请求 /close 失败：${error.message}\n`;
         });
     });
 
-    document.getElementById('closeAllButton').addEventListener('click', function() {
-            // 假設 "deleteAll" 是你的伺服器要接受的GET請求的端點
-            fetch('/closeAll', {
-                method: 'GET'
-            })
-            .then(response => {
-                if (response.ok) {
-                    alert('全部已關閉');
-                } else {
-                    alert('關閉失敗');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('發生錯誤');
-            });
+    // 关闭所有连接
+    document.getElementById('closeAllButton').addEventListener('click', () => {
+      fetch('/closeAll', { method: 'GET' })
+        .then(response => {
+          if (response.ok) {
+            log.textContent += '所有连接已关闭。\n';
+          } else {
+            log.textContent += '关闭连接失败。\n';
+          }
+        })
+        .catch(error => {
+          log.textContent += `请求 /closeAll 失败：${error.message}\n`;
         });
-
-
+    });
   </script>
 </body>
 </html>

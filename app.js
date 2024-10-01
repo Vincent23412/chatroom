@@ -3,13 +3,14 @@ const morgan = require('morgan');
 const WebSocket = require('ws'); 
 const http = require('http'); 
 const { wss1, connections}  = require('./ws'); 
+const cors = require('cors');
 
 const app = express(); 
 const PORT = 8000; 
 
 app.use(morgan('dev'));
 app.use(express.static('public')); 
-
+app.use(cors());
 const server = http.createServer(app); 
 
 app.get('/', (req, res, next) =>{
