@@ -20,8 +20,8 @@
     const closeButton = document.getElementById('closeButton'); // 获取关闭按钮
 
     // 建立 WebSocket 连接
-    // const socket = new WebSocket('wss://chatroom-3024.onrender.com/ws');
-    const socket = new WebSocket('ws://localhost:8000/ws');
+    const socket = new WebSocket('wss://chatroom-3024.onrender.com/ws');
+    // const socket = new WebSocket('ws://localhost:8000/ws');
 
     // 当连接打开时
     socket.addEventListener('open', () => {
