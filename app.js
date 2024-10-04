@@ -4,9 +4,22 @@ const WebSocket = require('ws');
 const http = require('http'); 
 const { wss1, connections}  = require('./ws'); 
 const cors = require('cors');
+const { Pool } = require('pg'); 
+const dotenv = require('dotenv');
+dotenv.config(); 
 
 const app = express(); 
-const PORT = 8000; 
+const pool = new Pool({
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST,
+    database: process.env.DATABASE,
+    password: process.env.DB_PASSWORD,
+    port: process.env.DB_PORT, 
+    ssl: {
+        rejectUnauthorized: false,       // 使用 SSL，並且不強制檢查憑證（通常在開發環境中使用）
+    }
+})
+
 
 app.use(morgan('dev'));
 app.use(express.static('public')); 
@@ -17,9 +30,16 @@ app.get('/', (req, res, next) =>{
     res.status(200).send('index'); 
 });
 
-app.get('/health', (req, res, next)=>{
+app.get('/health', (req, res, next) => {
+    // console.log(process.env.DB_PORT);
+    // console.log(process.env.DB_HOST);
+    // console.log(process.env.DB_USER);
+    // console.log(process.env.DB_PASSWORD);
+    // console.log(process.env.DATABASE);
+
     res.status(200).send('health'); 
 });
+
 
 app.get('/close', (req, res) => {
     res.status(200).send('close connection');
@@ -33,19 +53,44 @@ app.get('/closeAll', (req, res) => {
     res.status(200).send('close all connection');
 })
 
+
+
+
 server.on('upgrade', function upgrade(request, socket, head) {
     const pathname = request.url;
 
     if (pathname === '/ws') {
         wss1.handleUpgrade(request, socket, head, function done(ws) {
+            console.log("WebSocket connection established.");
+    
+            // 在 WebSocket 連接建立時查詢資料庫
+            pool.query('SELECT * FROM chat', (err, result) => {
+                if (err) {
+                    console.error('Error executing query', err.stack);
+                    // 使用 WebSocket 發送錯誤消息到客戶端
+                    ws.send(JSON.stringify({
+                        status: 'error',
+                        message: 'Error fetching data from database'
+                    }));
+                } else {
+                    // 使用 WebSocket 發送查詢結果到客戶端
+                    ws.send(JSON.stringify({
+                        status: 'success',
+                        data: result.rows
+                    }));
+                }
+            });
+    
+            // 處理 WebSocket 連接
             wss1.emit('connection', ws, request);
         });
     }
+    
     else {
         socket.destroy();
     }
 });
 
-server.listen(PORT, '0.0.0.0', () => {
-    console.log("Server is running on port", PORT); 
+server.listen(process.env.PORT , '0.0.0.0', () => {
+    console.log("Server is running on port", process.env.PORT); 
 });
