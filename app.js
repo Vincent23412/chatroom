@@ -8,6 +8,8 @@ const { Pool } = require('pg');
 const pool = require('./db'); 
 const dotenv = require('dotenv');
 dotenv.config(); 
+const auth = require('./auth'); 
+
 
 const app = express(); 
 
@@ -16,6 +18,9 @@ const app = express();
 app.use(morgan('dev'));
 app.use(express.static('public')); 
 app.use(cors());
+app.use(express.json());  // 用來解析 JSON 請求
+
+
 const server = http.createServer(app); 
 
 app.get('/', (req, res, next) =>{
@@ -43,6 +48,15 @@ app.get('/closeAll', (req, res) => {
         ws.close(); 
     })
     res.status(200).send('close all connection');
+})
+
+
+app.post('/register', auth.register); 
+
+app.post('/login', auth.login); 
+
+app.get('/protect', auth.authenticateToken, (req, res) => {
+    res.json({message: 'welcome'}); 
 })
 
 
