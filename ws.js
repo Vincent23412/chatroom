@@ -1,5 +1,7 @@
 const WebSocket = require('ws'); 
 const { v4: uuidv4 } = require('uuid');  // 使用解構賦值的方式導入 uuidv4
+const pool = require('./db'); 
+
 const connections = new Set(); 
 const wss1 = new WebSocket.Server({ noServer: true });
 
@@ -22,19 +24,34 @@ wss1.on('connection', (ws) => {
 
     // 當接收到客戶端的訊息時
     ws.on('message', (message) => {
-        message = message.toString();  // 將 Buffer 轉換為字串
+        // 將 Buffer 轉換為字串
+        message = message.toString();  
         console.log(`Received: ${message}`);
-
+    
         // 創建訊息物件
         const msg = {
             context: 'message', 
             uuid, 
             message
         };
-
-        // 將訊息廣播給所有用戶
-        sendAllUsers(msg);
+        
+        // 插入資料到資料庫
+        pool.query('INSERT INTO chat (author, message ) VALUES ($1, $2)', [author, message], (err, result) => {
+            if (err) {
+                console.error('Error executing query:', err.stack);  // 處理資料庫錯誤
+                ws.send(JSON.stringify({
+                    status: 'error',
+                    message: 'Failed to save message to database'
+                }));
+            } else {
+                console.log('Message inserted successfully');
+    
+                // 成功插入後廣播給所有用戶
+                sendAllUsers(msg);
+            }
+        });
     });
+    
 
     // 當連接關閉時
     ws.on('close', () => {

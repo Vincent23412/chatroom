@@ -5,20 +5,12 @@ const http = require('http');
 const { wss1, connections}  = require('./ws'); 
 const cors = require('cors');
 const { Pool } = require('pg'); 
+const pool = require('./db'); 
 const dotenv = require('dotenv');
 dotenv.config(); 
 
 const app = express(); 
-const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DATABASE,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT, 
-    ssl: {
-        rejectUnauthorized: false,       // 使用 SSL，並且不強制檢查憑證（通常在開發環境中使用）
-    }
-})
+
 
 
 app.use(morgan('dev'));
