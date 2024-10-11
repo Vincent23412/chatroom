@@ -46,7 +46,7 @@ const login = async (req, res) => {
 const authenticateToken = (req, res, next) => {
     const token = req.headers['authorization'];
 
-    console.log(token); 
+    // console.log(token); 
 
     if (!token) return res.status(401).json({error:'access denied'}); 
 
