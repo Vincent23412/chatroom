@@ -35,6 +35,8 @@ wss1.on('connection', (ws) => {
             message
         };
         
+        const author = 'test'; 
+
         // 插入資料到資料庫
         pool.query('INSERT INTO chat (author, message ) VALUES ($1, $2)', [author, message], (err, result) => {
             if (err) {
