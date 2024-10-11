@@ -10,7 +10,7 @@ const register = async (req, res) =>{
     const {username, password} = req.body; 
     const hashedPassword = await bcrypt.hash(password, 10); 
     
-    pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', [username, password], (err, result) =>{
+    pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', [username, hashedPassword], (err, result) =>{
         if (err){
             return res.status(500).json({error: 'error'}); 
         }
@@ -20,16 +20,18 @@ const register = async (req, res) =>{
 
 const login = async (req, res) => {
     const {username, password} = req.body; 
-    console.log(username, password);
+    // console.log(username, password);
     pool.query('SELECT * FROM users WHERE username = $1', [username], async (err, result) => {
         if (err || result.rows.length === 0) {
-            return res.status(400).send({error: 'error'}); 
+            return res.status(200).send({
+                username: 'visitor'
+            }); 
         }
 
         const user = result.rows[0];
-        console.log(user);  
-        // const isValidPassword = await bcrypt.compare(password, user.password); 
-        const isValidPassword = (password === user.password); 
+        // console.log(user);  
+        const isValidPassword = await bcrypt.compare(password, user.password); 
+        // const isValidPassword = (password === user.password); 
         
 
         if (!isValidPassword){
@@ -37,7 +39,10 @@ const login = async (req, res) => {
         }
 
         const token = jwt.sign({userId:user.id}, secretKey, {expiresIn:'1h'}); 
-        res.json({token}); 
+        res.json({
+            token, 
+            username: user.username
+        }); 
 
     })
 }

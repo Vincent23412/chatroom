@@ -2,7 +2,8 @@ const express = require('express');
 const morgan = require('morgan'); 
 const WebSocket = require('ws'); 
 const http = require('http'); 
-const { wss1, connections}  = require('./ws'); 
+// const { wss1, connections}  = require('./ws'); 
+const setupWebSocket = require('./ws'); 
 const cors = require('cors');
 const { Pool } = require('pg'); 
 const pool = require('./db'); 
@@ -60,42 +61,8 @@ app.get('/protect', auth.authenticateToken, (req, res) => {
 })
 
 
+setupWebSocket(server);
 
-
-server.on('upgrade', function upgrade(request, socket, head) {
-    const pathname = request.url;
-
-    if (pathname === '/ws') {
-        wss1.handleUpgrade(request, socket, head, function done(ws) {
-            console.log("WebSocket connection established.");
-    
-            // 在 WebSocket 連接建立時查詢資料庫
-            pool.query('SELECT * FROM chat', (err, result) => {
-                if (err) {
-                    console.error('Error executing query', err.stack);
-                    // 使用 WebSocket 發送錯誤消息到客戶端
-                    ws.send(JSON.stringify({
-                        status: 'error',
-                        message: 'Error fetching data from database'
-                    }));
-                } else {
-                    // 使用 WebSocket 發送查詢結果到客戶端
-                    ws.send(JSON.stringify({
-                        status: 'success',
-                        data: result.rows
-                    }));
-                }
-            });
-    
-            // 處理 WebSocket 連接
-            wss1.emit('connection', ws, request);
-        });
-    }
-    
-    else {
-        socket.destroy();
-    }
-});
 
 server.listen(process.env.PORT , '0.0.0.0', () => {
     console.log("Server is running on port", process.env.PORT); 
