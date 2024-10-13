@@ -38,7 +38,7 @@ const login = async (req, res) => {
             return res.status(400).json({error: 'invalid user'}); 
         }
 
-        const token = jwt.sign({userId:user.id}, secretKey, {expiresIn:'1h'}); 
+        const token = jwt.sign({userId:user.id, username:user.username}, secretKey, {expiresIn:'1h'}); 
         res.json({
             token, 
             username: user.username

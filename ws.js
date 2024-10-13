@@ -3,14 +3,16 @@ const { v4: uuidv4 } = require('uuid');  // 使用解構賦值的方式導入 uu
 const pool = require('./db'); 
 const auth = require('./auth'); 
 const url = require('url'); 
-
+const jwt = require('jsonwebtoken'); 
+const dotenv = require('dotenv'); 
+dotenv.config(); 
 
 const connections = new Set(); 
-// const wss1 = new WebSocket.Server({ noServer: true });
 
 /////////////////////////需新增驗證
 
 function setupWebSocket(server) {
+
     // 創建 WebSocket 伺服器
     const wss1 = new WebSocket.Server({ noServer: true });
 
@@ -79,17 +81,13 @@ function setupWebSocket(server) {
             // 將 Buffer 轉換為字串
             const parsedMessage = JSON.parse(message.toString());
 
-            // console.log(parsedMessage); 
-
             // 從解析後的物件中解構提取 token 和 message 字段
             const { token, message: word, username } = parsedMessage;
     
             console.log('Received message:', word);
             console.log('Token:', token);
             console.log('username', username); 
-    
-            // console.log(token); 
-            // console.log(`Received: ${word}`);
+
         
             // 創建訊息物件
             const msg = {
@@ -99,8 +97,6 @@ function setupWebSocket(server) {
                 word
             };
 
-
-            const host = req.headers.host;
 
 
             // 根据主机名设置 author
@@ -116,14 +112,18 @@ function setupWebSocket(server) {
                 author = 'visitor'; 
             }
 
-        // const token = req.url.searchParams.get('token');
-
         // if (!verifyToken(token)) {
         //     console.log(token);
         //     ws.send(JSON.stringify({ error: 'Unauthorized' }));
         //     ws.close();
         //     return;
         // }
+
+        jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
+            if (err)
+                return res.status(403).json({ message: 'Invalid token' });
+            console.log(`welcome to ${user.username}`); 
+        })
 
         // 插入資料到資料庫
         pool.query('INSERT INTO chat (author, message ) VALUES ($1, $2)', [author, word], (err, result) => {
@@ -137,7 +137,7 @@ function setupWebSocket(server) {
                 console.log('Message inserted successfully');
                 console.log(msg); 
                 // 成功插入後廣播給所有用戶
-                sendAllUsers(wss1, msg);
+                sendAllUsers(wss1, msg, uuid);
             }
         });
     });
@@ -155,7 +155,7 @@ function setupWebSocket(server) {
 // 將訊息發送給所有連接的用戶
 function sendAllUsers(wss1, msg) {
     wss1.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
+        if (client.readyState === WebSocket.OPEN && client.uuid !== msg.uuid) {
             client.send(JSON.stringify(msg));
         }
     });
