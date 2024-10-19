@@ -7,9 +7,8 @@ const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv'); 
 dotenv.config(); 
 
-const connections = new Set(); 
+// const connections = new Set(); 
 
-/////////////////////////需新增驗證
 
 function setupWebSocket(server) {
 
@@ -39,7 +38,7 @@ function setupWebSocket(server) {
     wss1.on('connection', (ws, req) => {
         // 新增連接
         // console.log(req); 
-        connections.add(ws); 
+        // connections.add(ws); 
         console.log("WebSocket connection established.");
 
         // 生成唯一的 UUID 並分配給該 WebSocket 連接
@@ -80,7 +79,7 @@ function setupWebSocket(server) {
         ws.on('message', (message) => {
             // 將 Buffer 轉換為字串
             const parsedMessage = JSON.parse(message.toString());
-
+            
             // 從解析後的物件中解構提取 token 和 message 字段
             const { token, message: word, username } = parsedMessage;
     
@@ -104,25 +103,12 @@ function setupWebSocket(server) {
             let author = ''; 
 
             if (username)
-            {
                 author = username;     
-            }
             else
-            {
                 author = 'visitor'; 
-            }
-
-        // if (!verifyToken(token)) {
-        //     console.log(token);
-        //     ws.send(JSON.stringify({ error: 'Unauthorized' }));
-        //     ws.close();
-        //     return;
-        // }
 
         jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
-            if (err)
-                return res.status(403).json({ message: 'Invalid token' });
-            console.log(`welcome to ${user.username}`); 
+            console.log(`welcome to ${username}`);   
         })
 
         // 插入資料到資料庫
@@ -146,9 +132,9 @@ function setupWebSocket(server) {
     // 當連接關閉時
     ws.on('close', () => {
         console.log('WebSocket connection closed.');
-        connections.delete(ws);  // 從連接集合中移除
+        // connections.delete(ws);  // 從連接集合中移除
     });
-    })
+})
 
 }
 

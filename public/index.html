@@ -6,6 +6,21 @@
 </head>
 <body>
   <h1>WebSocket</h1>
+  
+  <!-- 登录部分 -->
+  <h2>登录</h2>
+  <input type="text" id="loginUsername" placeholder="输入用户名">
+  <input type="password" id="loginPassword" placeholder="输入密码">
+  <button id="loginButton">登录</button>
+
+  <!-- 注册部分 -->
+  <h2>注册</h2>
+  <input type="text" id="registerUsername" placeholder="输入用户名">
+  <input type="password" id="registerPassword" placeholder="输入密码">
+  <button id="registerButton">注册</button>
+
+  <!-- WebSocket 消息部分 -->
+  <h2>发送消息</h2>
   <input type="text" id="messageInput" placeholder="输入消息">
   <button id="sendButton">发送</button>
   <button id="closeButton">断开连接</button>
@@ -21,17 +36,19 @@
 
     let jwtToken = '';
 
-    // 模拟登录获取 JWT token
+    // 登录
     function login() {
+      const username = document.getElementById('loginUsername').value;
+      const password = document.getElementById('loginPassword').value;
+
       fetch('/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        ////// 
         body: JSON.stringify({
-          username: 'Vincent',
-          password: 'asd'
+          username,
+          password
         })
       })
       .then(response => response.json())
@@ -39,18 +56,13 @@
         if (data.token) {
           jwtToken = data.token;
           log.textContent += `登录成功，获得 token：${jwtToken}\n`;
-          console.log(data.username); 
-          localStorage.username = data.username; 
+          localStorage.username = data.username;
           connectWebSocket();
-        } 
-        else if (data.username == 'visitor')
-        {          
-          console.log(data.username); 
-          localStorage.username = data.username; 
+        } else if (data.username === 'visitor') {
+          log.textContent += `使用游客模式连接。\n`;
+          localStorage.username = data.username;
           connectWebSocket();
-
-        }
-        else {
+        } else {
           log.textContent += '登录失败。\n';
         }
       })
@@ -59,6 +71,33 @@
       });
     }
 
+    // 注册
+    function register() {
+      const username = document.getElementById('registerUsername').value;
+      const password = document.getElementById('registerPassword').value;
+
+      fetch('/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          password
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message == 'success') {
+          log.textContent += `注册成功，欢迎 ${data.username}！请登录。\n`;
+        } else {
+          log.textContent += '注册失败，请重试。\n';
+        }
+      })
+      .catch(error => {
+        log.textContent += `注册请求失败：${error.message}\n`;
+      });
+    }
 
     // 建立 WebSocket 连接
     function connectWebSocket() {
@@ -86,7 +125,7 @@
 
           if (data.context === 'user') {
             log.textContent += `使用者代号：${data.uuid}\n`;
-          } else if (data.context === 'message') {
+          } else if (data.context === 'message' && data.username !== localStorage.username) {
             log.textContent += `接收消息：${data.word}\n`;
           } else if (data.context === 'close') {
             log.textContent += `关闭连接：${data.uuid}\n`;
@@ -101,14 +140,13 @@
       sendButton.addEventListener('click', () => {
         const message = messageInput.value;
         if (socket.readyState === WebSocket.OPEN) {
-
           const messageData = {
             token: jwtToken, // 每次发消息时附带 token
-            message: message, 
+            message: message,
             username: localStorage.username
           };
           socket.send(JSON.stringify(messageData));
-          log.textContent += `${localStorage.username}发送消息：${message}\n`;
+          log.textContent += `${localStorage.username} 发送消息：${message}\n`;
         } else {
           log.textContent += '无法发送消息，WebSocket 未连接。\n';
         }
@@ -162,8 +200,11 @@
       });
     }
 
-    // 自动执行登录
-    login();
+    // 登录按钮点击事件
+    document.getElementById('loginButton').addEventListener('click', login);
+    
+    // 注册按钮点击事件
+    document.getElementById('registerButton').addEventListener('click', register);
   </script>
 </body>
 </html>

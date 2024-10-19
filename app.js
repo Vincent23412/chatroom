@@ -10,6 +10,7 @@ const pool = require('./db');
 const dotenv = require('dotenv');
 dotenv.config(); 
 const auth = require('./auth'); 
+const {liveData} = require('./live'); 
 
 
 const app = express(); 
@@ -29,12 +30,7 @@ app.get('/', (req, res, next) =>{
 });
 
 app.get('/health', (req, res, next) => {
-    // console.log(process.env.DB_PORT);
-    // console.log(process.env.DB_HOST);
-    // console.log(process.env.DB_USER);
-    // console.log(process.env.DB_PASSWORD);
-    // console.log(process.env.DATABASE);
-
+    liveData(); 
     res.status(200).send('health'); 
 });
 

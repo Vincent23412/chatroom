@@ -12,9 +12,11 @@ const register = async (req, res) =>{
     
     pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', [username, hashedPassword], (err, result) =>{
         if (err){
+            console.log('register error'); 
             return res.status(500).json({error: 'error'}); 
         }
-        res.status(201).json({message: 'success'}); 
+        console.log('register success'); 
+        res.status(201).json({message: 'success', username}); 
     })
 }
 
@@ -31,12 +33,11 @@ const login = async (req, res) => {
         const user = result.rows[0];
         // console.log(user);  
         const isValidPassword = await bcrypt.compare(password, user.password); 
-        // const isValidPassword = (password === user.password); 
         
 
-        if (!isValidPassword){
-            return res.status(400).json({error: 'invalid user'}); 
-        }
+        // if (!isValidPassword){
+        //     return res.status(400).json({error: 'invalid user'}); 
+        // }
 
         const token = jwt.sign({userId:user.id, username:user.username}, secretKey, {expiresIn:'1h'}); 
         res.json({
@@ -51,10 +52,7 @@ const login = async (req, res) => {
 const authenticateToken = (req, res, next) => {
     const token = req.headers['authorization'];
 
-    // console.log(token); 
-
     if (!token) return res.status(401).json({error:'access denied'}); 
-
 
     jwt.verify(token, secretKey, (err, user) => {
         if (err)
