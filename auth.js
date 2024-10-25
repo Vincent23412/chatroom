@@ -34,11 +34,6 @@ const login = async (req, res) => {
         // console.log(user);  
         const isValidPassword = await bcrypt.compare(password, user.password); 
         
-
-        // if (!isValidPassword){
-        //     return res.status(400).json({error: 'invalid user'}); 
-        // }
-
         const token = jwt.sign({userId:user.id, username:user.username}, secretKey, {expiresIn:'1h'}); 
         res.json({
             token, 
@@ -56,9 +51,8 @@ const authenticateToken = (req, res, next) => {
 
     jwt.verify(token, secretKey, (err, user) => {
         if (err)
-        {
             return res.status(403).json({error: 'access denied'}); 
-        }
+        
         req.user = user; 
         next(); 
     

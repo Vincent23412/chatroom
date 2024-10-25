@@ -27,184 +27,169 @@
   <button id="closeAllButton">关闭全部</button>
 
   <pre id="log"></pre>
-
   <script>
     const log = document.getElementById('log');
     const messageInput = document.getElementById('messageInput');
     const sendButton = document.getElementById('sendButton');
-    const closeButton = document.getElementById('closeButton'); // 获取关闭按钮
+    const closeButton = document.getElementById('closeButton');
 
     let jwtToken = '';
+    let socket = null; // 定義 socket 為全局變量
 
-    // 登录
-    function login() {
-      const username = document.getElementById('loginUsername').value;
-      const password = document.getElementById('loginPassword').value;
+// 登录
+function login() {
+  const username = document.getElementById('loginUsername').value;
+  const password = document.getElementById('loginPassword').value;
 
-      fetch('/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username,
-          password
-        })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.token) {
-          jwtToken = data.token;
-          log.textContent += `登录成功，获得 token：${jwtToken}\n`;
-          localStorage.username = data.username;
-          connectWebSocket();
-        } else if (data.username === 'visitor') {
-          log.textContent += `使用游客模式连接。\n`;
-          localStorage.username = data.username;
-          connectWebSocket();
-        } else {
-          log.textContent += '登录失败。\n';
-        }
-      })
-      .catch(error => {
-        log.textContent += `登录请求失败：${error.message}\n`;
-      });
+  fetch('/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      username,
+      password
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.token) {
+      jwtToken = data.token;
+      log.textContent += `登录成功，获得 token：${jwtToken}\n`;
+      localStorage.username = data.username;
+      connectWebSocket();
+    } else if (data.username === 'visitor') {
+      log.textContent += `使用游客模式连接。\n`;
+      localStorage.username = data.username;
+      connectWebSocket();
+    } else {
+      log.textContent += '登录失败。\n';
     }
+  })
+  .catch(error => {
+    log.textContent += `登录请求失败：${error.message}\n`;
+  });
+}
 
-    // 注册
-    function register() {
-      const username = document.getElementById('registerUsername').value;
-      const password = document.getElementById('registerPassword').value;
+// 注册
+function register() {
+  const username = document.getElementById('registerUsername').value;
+  const password = document.getElementById('registerPassword').value;
 
-      fetch('/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username,
-          password
-        })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.message == 'success') {
-          log.textContent += `注册成功，欢迎 ${data.username}！请登录。\n`;
-        } else {
-          log.textContent += '注册失败，请重试。\n';
-        }
-      })
-      .catch(error => {
-        log.textContent += `注册请求失败：${error.message}\n`;
-      });
+  fetch('/register', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      username,
+      password
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.message == 'success') {
+      log.textContent += `注册成功，欢迎 ${data.username}！请登录。\n`;
+    } else {
+      log.textContent += '注册失败，请重试。\n';
     }
+  })
+  .catch(error => {
+    log.textContent += `注册请求失败：${error.message}\n`;
+  });
+}
 
-    // 建立 WebSocket 连接
-    function connectWebSocket() {
-      if (!jwtToken && localStorage.username !== 'visitor') {
-        log.textContent += '尚未登录，无法建立 WebSocket 连接。\n';
-        return;
+// 建立 WebSocket 连接
+function connectWebSocket() {
+  if (!jwtToken && localStorage.username !== 'visitor') {
+    log.textContent += '尚未登录，无法建立 WebSocket 连接。\n';
+    return;
+  }
+
+  // 檢查並關閉現有 WebSocket 連接（如果存在）
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    socket.close();
+  }
+
+  // 初始化 WebSocket 連接
+  socket = new WebSocket(
+    window.location.hostname === 'localhost'
+      ? `ws://localhost:8000/ws`
+      : `wss://chatroom-3024.onrender.com/ws`
+  );
+
+  // 当连接打开时
+  socket.addEventListener('open', () => {
+    log.textContent += 'WebSocket 连接已建立。\n';
+  });
+
+  // 接收服务器消息
+  socket.addEventListener('message', (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      console.log(data);
+
+      if (data.context === 'user') {
+        log.textContent += `使用者代号：${data.uuid}\n`;
+      } else if (data.context === 'message') {
+        log.textContent += `接收消息：${data.word}\n`;
+      } else if (data.context === 'close') {
+        log.textContent += `关闭连接：${data.uuid}\n`;
       }
-
-      const socket = new WebSocket(
-        window.location.hostname === 'localhost'
-          ? `ws://localhost:8000/ws`
-          : `wss://chatroom-3024.onrender.com/ws`
-      );
-
-      // 当连接打开时
-      socket.addEventListener('open', () => {
-        log.textContent += 'WebSocket 连接已建立。\n';
-      });
-
-      // 接收服务器消息
-      socket.addEventListener('message', (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          console.log(data);
-
-          if (data.context === 'user') {
-            log.textContent += `使用者代号：${data.uuid}\n`;
-          } else if (data.context === 'message' && data.username !== localStorage.username) {
-            log.textContent += `接收消息：${data.word}\n`;
-          } else if (data.context === 'close') {
-            log.textContent += `关闭连接：${data.uuid}\n`;
-          }
-        } catch (error) {
-          log.textContent += `解析消息时出错：${error.word}\n`;
-          console.error('Message parsing error:', error);
-        }
-      });
-
-      // 发送消息到服务器
-      sendButton.addEventListener('click', () => {
-        const message = messageInput.value;
-        if (socket.readyState === WebSocket.OPEN) {
-          const messageData = {
-            token: jwtToken, // 每次发消息时附带 token
-            message: message,
-            username: localStorage.username
-          };
-          socket.send(JSON.stringify(messageData));
-          log.textContent += `${localStorage.username} 发送消息：${message}\n`;
-        } else {
-          log.textContent += '无法发送消息，WebSocket 未连接。\n';
-        }
-        messageInput.value = '';
-      });
-
-      // 处理连接关闭
-      socket.addEventListener('close', () => {
-        log.textContent += 'WebSocket 连接已关闭。\n';
-      });
-
-      // 处理错误
-      socket.addEventListener('error', (event) => {
-        log.textContent += `WebSocket 发生错误：${event.message}\n`;
-        console.error('WebSocket error:', event);
-      });
-
-      // 手动关闭 WebSocket 连接
-      closeButton.addEventListener('click', () => {
-        if (socket && socket.readyState === WebSocket.OPEN) {
-          socket.close(); // 关闭 WebSocket 连接
-          log.textContent += '已手动关闭 WebSocket 连接。\n';
-        } else {
-          log.textContent += 'WebSocket 连接已关闭或未建立。\n';
-        }
-
-        // 发送请求到服务器的 /close 路径
-        fetch('/close', { method: 'GET' })
-          .then(response => response.text())
-          .then(data => {
-            log.textContent += `服务器响应：${data}\n`;
-          })
-          .catch(error => {
-            log.textContent += `请求 /close 失败：${error.message}\n`;
-          });
-      });
-
-      // 关闭所有连接
-      document.getElementById('closeAllButton').addEventListener('click', () => {
-        fetch('/closeAll', { method: 'GET' })
-          .then(response => {
-            if (response.ok) {
-              log.textContent += '所有连接已关闭。\n';
-            } else {
-              log.textContent += '关闭连接失败。\n';
-            }
-          })
-          .catch(error => {
-            log.textContent += `请求 /closeAll 失败：${error.message}\n`;
-          });
-      });
+    } catch (error) {
+      log.textContent += `解析消息时出错：${error.message}\n`;
+      console.error('Message parsing error:', error);
     }
+  });
 
-    // 登录按钮点击事件
-    document.getElementById('loginButton').addEventListener('click', login);
-    
-    // 注册按钮点击事件
-    document.getElementById('registerButton').addEventListener('click', register);
+  // 处理连接关闭
+  socket.addEventListener('close', () => {
+    log.textContent += 'WebSocket 连接已关闭。\n';
+    socket = null;
+  });
+
+  // 处理错误
+  socket.addEventListener('error', (event) => {
+    log.textContent += `WebSocket 发生错误：${event.message}\n`;
+    console.error('WebSocket error:', event);
+  });
+}
+
+// 发送消息到服务器
+sendButton.addEventListener('click', () => {
+  const message = messageInput.value;
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    console.log("send message");
+    const messageData = {
+      token: jwtToken,
+      message: message,
+      username: localStorage.username
+    };
+    socket.send(JSON.stringify(messageData));
+    log.textContent += `${localStorage.username} 发送消息：${message}\n`;
+  } else {
+    log.textContent += '无法发送消息，WebSocket 未连接。\n';
+  }
+  messageInput.value = '';
+});
+
+// 手动关闭 WebSocket 连接
+closeButton.addEventListener('click', () => {
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    socket.close();
+    log.textContent += '已手动关闭 WebSocket 连接。\n';
+  } else {
+    log.textContent += 'WebSocket 连接已关闭或未建立。\n';
+  }
+});
+
+// 登录按钮点击事件
+document.getElementById('loginButton').addEventListener('click', login);
+// 注册按钮点击事件
+document.getElementById('registerButton').addEventListener('click', register);
+
+
   </script>
+
 </body>
 </html>

@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv'); 
 dotenv.config(); 
 
-// const connections = new Set(); 
+const connections = new Set(); 
 
 
 function setupWebSocket(server) {
@@ -38,7 +38,7 @@ function setupWebSocket(server) {
     wss1.on('connection', (ws, req) => {
         // 新增連接
         // console.log(req); 
-        // connections.add(ws); 
+        connections.add(ws); 
         console.log("WebSocket connection established.");
 
         // 生成唯一的 UUID 並分配給該 WebSocket 連接
@@ -132,7 +132,7 @@ function setupWebSocket(server) {
     // 當連接關閉時
     ws.on('close', () => {
         console.log('WebSocket connection closed.');
-        // connections.delete(ws);  // 從連接集合中移除
+        connections.delete(ws);  // 從連接集合中移除
     });
 })
 
@@ -141,7 +141,8 @@ function setupWebSocket(server) {
 // 將訊息發送給所有連接的用戶
 function sendAllUsers(wss1, msg) {
     wss1.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN && client.uuid !== msg.uuid) {
+        // 只向開啟的 WebSocket 發送消息
+        if (client.readyState === WebSocket.OPEN) {
             client.send(JSON.stringify(msg));
         }
     });

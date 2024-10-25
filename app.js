@@ -2,7 +2,6 @@ const express = require('express');
 const morgan = require('morgan'); 
 const WebSocket = require('ws'); 
 const http = require('http'); 
-// const { wss1, connections}  = require('./ws'); 
 const setupWebSocket = require('./ws'); 
 const cors = require('cors');
 const { Pool } = require('pg'); 
@@ -12,16 +11,12 @@ dotenv.config();
 const auth = require('./auth'); 
 const {liveData} = require('./live'); 
 
-
 const app = express(); 
-
-
 
 app.use(morgan('dev'));
 app.use(express.static('public')); 
 app.use(cors());
 app.use(express.json());  // 用來解析 JSON 請求
-
 
 const server = http.createServer(app); 
 
@@ -30,7 +25,6 @@ app.get('/', (req, res, next) =>{
 });
 
 app.get('/health', (req, res, next) => {
-    liveData(); 
     res.status(200).send('health'); 
 });
 
