@@ -50,12 +50,15 @@ app.get('/protect', auth.authenticateToken, (req, res) => {
     res.json({message: 'welcome'}); 
 })
 
-setupWebSocket(server);
+app.post('/userInfo', auth.findUserData); 
 
 app.get('/getAllMessage', (req, res) => {
-        sendAllMessage(pool, res)
-    }
-)
+    sendAllMessage(pool, res)
+})
+
+
+
+setupWebSocket(server);
 
 server.listen(process.env.PORT , '0.0.0.0', () => {
     console.log("Server is running on port", process.env.PORT); 

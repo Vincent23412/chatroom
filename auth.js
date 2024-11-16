@@ -10,10 +10,12 @@ const register = async (req, res) =>{
     const {username, password} = req.body; 
     const hashedPassword = await bcrypt.hash(password, 10); 
     
-    pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', [username, hashedPassword], (err, result) =>{
+    pool.query('INSERT INTO users (username, password, point) VALUES ($1, $2, $3)', [username, hashedPassword, 500], (err, result) =>{
         if (err){
-            console.log('register error'); 
-            return res.status(500).json({error: 'error'}); 
+            console.log(err.detail); 
+            return res.status(500).json({error: err, 
+                                        detail:err.detail
+            }); 
         }
         console.log('register success'); 
         res.status(201).json({message: 'success', username}); 
@@ -25,7 +27,8 @@ const login = async (req, res) => {
     // console.log(username, password);
     pool.query('SELECT * FROM users WHERE username = $1', [username], async (err, result) => {
         if (err || result.rows.length === 0) {
-            return res.status(200).send({
+            return res.status(404).send({
+                status: 'wrong infomation', 
                 username: 'visitor'
             }); 
         }
@@ -59,4 +62,25 @@ const authenticateToken = (req, res, next) => {
     })
 }
 
-module.exports = { register, login, authenticateToken };
+
+const findUserData  = async (req, res, next) => 
+{
+    const {username} = req.body; 
+    pool.query('SELECT * FROM users WHERE username = $1', [username], async (err, result) => {
+        if (err || result.rows.length === 0) {
+            return res.status(404).send({
+                status: 'wrong infomation', 
+                username: 'visitor'
+            }); 
+        }
+
+        const user = result.rows[0];
+        
+        res.json({
+            user
+        }); 
+
+    })
+}
+
+module.exports = { register, login, authenticateToken, findUserData };
