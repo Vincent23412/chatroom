@@ -37,11 +37,22 @@ const login = async (req, res) => {
         // console.log(user);  
         const isValidPassword = await bcrypt.compare(password, user.password); 
         
-        const token = jwt.sign({userId:user.id, username:user.username}, secretKey, {expiresIn:'1h'}); 
-        res.json({
-            token, 
-            username: user.username
+        console.log(isValidPassword); 
+        if (isValidPassword)
+        {
+            const token = jwt.sign({userId:user.id, username:user.username}, secretKey, {expiresIn:'1h'}); 
+            res.json({
+                token, 
+                username: user.username
+            }); 
+        }
+        else
+        {
+            res.status(404).send({
+                status:"error"
         }); 
+        }
+
 
     })
 }
