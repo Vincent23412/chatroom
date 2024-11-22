@@ -113,9 +113,10 @@ function connectWebSocket() {
 
   // 初始化 WebSocket 連接
   socket = new WebSocket(
-    window.location.hostname === 'localhost'
-      ? `ws://localhost:8000/ws`
-      : `wss://chatroom-3024.onrender.com/ws`
+    // window.location.hostname === 'localhost'
+    "ws://10.201.28.199:8000/ws"
+      // ? `ws://localhost:8000/ws`
+      // : `wss://chatroom-3024.onrender.com/ws`
   );
 
   // 当连接打开时
@@ -157,10 +158,12 @@ function connectWebSocket() {
 
 // 发送消息到服务器
 sendButton.addEventListener('click', () => {
+  console.log(socket.hostname);
   const message = messageInput.value;
   if (socket && socket.readyState === WebSocket.OPEN) {
     console.log("send message");
     const messageData = {
+      topic:'msg',
       token: jwtToken,
       message: message,
       username: localStorage.username

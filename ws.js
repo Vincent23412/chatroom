@@ -48,6 +48,7 @@ function setupWebSocket(server) {
         // 發送 UUID 給客戶端
         const user = {
             context: 'user', 
+            topic: 'uuid',
             uuid
         };
 
@@ -82,7 +83,7 @@ function setupWebSocket(server) {
             
             // 從解析後的物件中解構提取 token 和 message 字段
             const { token, message: word, username } = parsedMessage;
-    
+            
             console.log('Received message:', word);
             console.log('Token:', token);
             console.log('username', username); 
@@ -91,6 +92,7 @@ function setupWebSocket(server) {
             // 創建訊息物件
             const msg = {
                 context: 'message', 
+                topic: 'msg',
                 uuid,
                 username,  
                 word
