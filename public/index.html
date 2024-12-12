@@ -163,7 +163,8 @@ sendButton.addEventListener('click', () => {
     const messageData = {
       token: jwtToken,
       message: message,
-      username: localStorage.username
+      username: localStorage.username, 
+      sticker: 1
     };
     socket.send(JSON.stringify(messageData));
     log.textContent += `${localStorage.username} 发送消息：${message}\n`;
