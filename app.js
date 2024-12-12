@@ -71,7 +71,7 @@ server.listen(process.env.PORT , '0.0.0.0', () => {
 
 function sendAllMessage(pool, res)
 {
-    pool.query('SELECT * FROM chat', (err, results) => {
+    pool.query('select author, timestamp, message_status, point, sticker from chat JOIN users on chat.author = users.username', (err, results) => {
         if (err) {
             console.error('Error executing query:', err.stack); // 處理資料庫錯誤
             ws.send(JSON.stringify({
