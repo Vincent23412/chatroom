@@ -7,10 +7,10 @@ const secretKey = process.env.SECRET_KEY;
 
 
 const register = async (req, res) =>{
-    const {username, password} = req.body; 
+    const {username, password, sticker} = req.body; 
     const hashedPassword = await bcrypt.hash(password, 10); 
     
-    pool.query('INSERT INTO users (username, password, point) VALUES ($1, $2, $3)', [username, hashedPassword, 500], (err, result) =>{
+    pool.query('INSERT INTO users (username, password, point, sticker) VALUES ($1, $2, $3, $4)', [username, hashedPassword, 500, sticker], (err, result) =>{
         if (err){
             console.log(err.detail); 
             return res.status(500).json({error: err, 

@@ -46,11 +46,13 @@ app.post('/register', auth.register);
 
 app.post('/login', auth.login); 
 
+
 app.get('/protect', auth.authenticateToken, (req, res) => {
     res.json({message: 'welcome'}); 
 })
 
 app.post('/userInfo', auth.findUserData); 
+
 
 app.get('/getAllMessage', (req, res) => {
     sendAllMessage(pool, res)
