@@ -93,4 +93,25 @@ const findUserData  = async (req, res, next) =>
     })
 }
 
-module.exports = { register, login, authenticateToken, findUserData };
+
+const getAllUser = async (req, res, next) => 
+    {
+        const {username} = req.body; 
+        pool.query('SELECT * FROM users; ', async (err, result) => {
+            if (err || result.rows.length === 0) {
+                return res.status(404).send({
+                    status: 'wrong infomation', 
+                    username: 'visitor'
+                }); 
+            }
+    
+            const user = result.rows;
+            
+            res.json({
+                user
+            }); 
+    
+        })
+    }
+
+module.exports = { register, login, authenticateToken, findUserData, getAllUser };

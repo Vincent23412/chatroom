@@ -53,6 +53,7 @@ app.get('/protect', auth.authenticateToken, (req, res) => {
 
 app.post('/userInfo', auth.findUserData); 
 
+app.get('/getAllUserInfo', auth.getAllUser); 
 
 app.get('/getAllMessage', (req, res) => {
     sendAllMessage(pool, res)
