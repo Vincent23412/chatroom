@@ -47,13 +47,14 @@ function setupWebSocket(server) {
 
         // 發送 UUID 給客戶端
         const user = {
+            topic: 'uuid',
             context: 'user', 
             uuid
         };
 
         ws.send(JSON.stringify(user)); 
 
-        pool.query('select author, timestamp, message_status, point, sticker from chat JOIN users on chat.author = users.username', (err, results) => {
+        pool.query('select author, timestamp, message_status, point, sticker, message from chat JOIN users on chat.author = users.username', (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.stack); // 處理資料庫錯誤
                 ws.send(JSON.stringify({
@@ -90,6 +91,7 @@ function setupWebSocket(server) {
         
             // 創建訊息物件
             const msg = {
+                topic: 'msg',
                 context: 'message', 
                 uuid,
                 username,  
