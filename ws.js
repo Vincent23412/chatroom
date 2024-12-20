@@ -82,11 +82,12 @@ function setupWebSocket(server) {
             const parsedMessage = JSON.parse(message.toString());
             
             // 從解析後的物件中解構提取 token 和 message 字段
-            const { token, message: word, username } = parsedMessage;
+            const { token, message: word, username, sticker} = parsedMessage;
     
             console.log('Received message:', word);
             console.log('Token:', token);
             console.log('username', username); 
+            console.log('sticker', sticker);
 
         
             // 創建訊息物件
@@ -95,7 +96,8 @@ function setupWebSocket(server) {
                 context: 'message', 
                 uuid,
                 username,  
-                word
+                word, 
+                sticker
             };
 
 
@@ -114,7 +116,7 @@ function setupWebSocket(server) {
         })
 
         // 插入資料到資料庫
-        pool.query('INSERT INTO chat (author, message ) VALUES ($1, $2)', [author, word], (err, result) => {
+        pool.query('INSERT INTO chat (author, message) VALUES ($1, $2)', [author, word], (err, result) => {
             if (err) {
                 console.error('Error executing query:', err.stack);  // 處理資料庫錯誤
                 ws.send(JSON.stringify({
