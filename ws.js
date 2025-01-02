@@ -147,7 +147,7 @@ function setupWebSocket(server) {
             console.log('WebSocket connection closed.');
             // console.log(ws.name); 
             connections.delete(ws.name);  // 從連接集合中移除
-            console.log(connections); 
+            console.log(connections);    
 
         });
 })
