@@ -17,12 +17,20 @@ function setupWebSocket(server) {
 
     // 當有升級請求時處理 WebSocket 連接
     server.on('upgrade', (request, socket, head) => {
-        const { pathname, query } = url.parse(request.url, true);
+        const { pathname, query} = url.parse(request.url, true);
+        console.log('upgrade'); 
+        console.log(pathname, query.username); 
 
-        console.log(pathname, query); 
+        if (connections.has(query.username))
+        {
+            console.log('repeat login'); 
+            return;
+        }     
+
         // 檢查路徑是否符合 WebSocket 的路徑
         if (pathname === '/ws') {
             wss1.handleUpgrade(request, socket, head, (ws) => {
+                connections.add(query.username); 
                 console.log("in /ws"); 
                 wss1.emit('connection', ws, request);
                 
@@ -37,8 +45,7 @@ function setupWebSocket(server) {
     // 當 WebSocket 連接建立時
     wss1.on('connection', (ws, req) => {
         // 新增連接
-        // console.log(req); 
-        connections.add(ws); 
+        
         console.log("WebSocket connection established.");
 
         // 生成唯一的 UUID 並分配給該 WebSocket 連接
@@ -136,7 +143,7 @@ function setupWebSocket(server) {
     // 當連接關閉時
     ws.on('close', () => {
         console.log('WebSocket connection closed.');
-        connections.delete(ws);  // 從連接集合中移除
+        connections.delete(query.username);  // 從連接集合中移除
     });
 })
 
