@@ -19,7 +19,7 @@ function setupWebSocket(server) {
     server.on('upgrade', (request, socket, head) => {
         const { pathname, query} = url.parse(request.url, true);
         console.log('upgrade'); 
-        console.log(pathname, query.username); 
+        // console.log(pathname, query.username); 
         let name = query.username; 
         if (connections.has(name))
         {
@@ -32,7 +32,8 @@ function setupWebSocket(server) {
             wss1.handleUpgrade(request, socket, head, (ws) => {
                 connections.add(query.username); 
                 console.log("in /ws"); 
-                ws.name = name; 
+                console.log(name); 
+                ws.name = query.username; 
                 wss1.emit('connection', ws, request);
                 
             });
@@ -142,9 +143,12 @@ function setupWebSocket(server) {
     
 
         // 當連接關閉時
-        ws.on('close', (ws, req) => {
+        ws.on('close', () => {
             console.log('WebSocket connection closed.');
+            // console.log(ws.name); 
             connections.delete(ws.name);  // 從連接集合中移除
+            console.log(connections); 
+
         });
 })
 
