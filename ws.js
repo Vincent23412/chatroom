@@ -17,13 +17,23 @@ function setupWebSocket(server) {
 
     // 當有升級請求時處理 WebSocket 連接
     server.on('upgrade', (request, socket, head) => {
-        const { pathname, query } = url.parse(request.url, true);
-        console.log('test'); 
-        console.log(pathname, query); 
+        const { pathname, query} = url.parse(request.url, true);
+        console.log('upgrade'); 
+        // console.log(pathname, query.username); 
+        let name = query.username; 
+        if (connections.has(name))
+        {
+            console.log('repeat login'); 
+            return;
+        }     
+
         // 檢查路徑是否符合 WebSocket 的路徑
         if (pathname === '/ws') {
             wss1.handleUpgrade(request, socket, head, (ws) => {
+                connections.add(query.username); 
                 console.log("in /ws"); 
+                console.log(name); 
+                ws.name = query.username; 
                 wss1.emit('connection', ws, request);
                 
             });
@@ -37,8 +47,7 @@ function setupWebSocket(server) {
     // 當 WebSocket 連接建立時
     wss1.on('connection', (ws, req) => {
         // 新增連接
-        // console.log(req); 
-        connections.add(ws); 
+        
         console.log("WebSocket connection established.");
 
         // 生成唯一的 UUID 並分配給該 WebSocket 連接
@@ -130,14 +139,17 @@ function setupWebSocket(server) {
                 sendAllUsers(wss1, msg, uuid);
             }
         });
-    });
+        });
     
 
-    // 當連接關閉時
-    ws.on('close', () => {
-        console.log('WebSocket connection closed.');
-        connections.delete(ws);  // 從連接集合中移除
-    });
+        // 當連接關閉時
+        ws.on('close', () => {
+            console.log('WebSocket connection closed.');
+            // console.log(ws.name); 
+            connections.delete(ws.name);  // 從連接集合中移除
+            console.log(connections);    
+
+        });
 })
 
 }
