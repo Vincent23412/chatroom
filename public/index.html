@@ -110,17 +110,18 @@ function connectWebSocket() {
   log.textContent += 'test0'; 
 
   // 檢查並關閉現有 WebSocket 連接（如果存在）
-  // if (typeof socket !== 'undefined' && socket.readyState === WebSocket.OPEN) {
-  //   socket.close();
-  // }
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    socket.close();
+  }
+
   log.textContent += 'test1'; 
 
   // 初始化 WebSocket 連接
-  const socket = new WebSocket(
-  window.location.hostname === 'localhost'
-    ? `ws://localhost:8000/ws` // 本地開發時使用本地端點
-    : 'wss://77f2-120-126-194-249.ngrok-free.app'
-);
+  socket = new WebSocket(
+    window.location.hostname === 'localhost'
+      ? `ws://localhost:8000/ws`
+      : `wss://chatroom-3024.onrender.com/ws`
+  );
   log.textContent += 'test2'; 
 
   // 当连接打开时
