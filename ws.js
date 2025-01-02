@@ -47,6 +47,7 @@ function setupWebSocket(server) {
 
         // 發送 UUID 給客戶端
         const user = {
+            topic: 'uuid',
             context: 'user', 
             uuid
         };
@@ -91,6 +92,7 @@ function setupWebSocket(server) {
         
             // 創建訊息物件
             const msg = {
+                topic: 'msg',
                 context: 'message', 
                 uuid,
                 username,  

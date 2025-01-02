@@ -118,9 +118,7 @@ function connectWebSocket() {
 
   // 初始化 WebSocket 連接
   socket = new WebSocket(
-    window.location.hostname === 'localhost'
-      ? `ws://localhost:8000/ws`
-      : `wss://chatroom-3024.onrender.com/ws`
+     `ws://10.201.27.215:7999/ws`
   );
   log.textContent += 'test2'; 
 
