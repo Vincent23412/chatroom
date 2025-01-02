@@ -58,6 +58,7 @@ app.get('/getAllMessage', (req, res) => {
     sendAllMessage(pool, res)
 })
 
+app.get('/report', liveData); 
 
 
 setupWebSocket(server);

@@ -25,6 +25,7 @@ const register = async (req, res) =>{
 const login = async (req, res) => {
     const {username, password} = req.body; 
     // console.log(username, password);
+
     pool.query('SELECT * FROM users WHERE username = $1', [username], async (err, result) => {
         if (err || result.rows.length === 0) {
             return res.status(404).send({
