@@ -18,7 +18,7 @@ function setupWebSocket(server) {
     // 當有升級請求時處理 WebSocket 連接
     server.on('upgrade', (request, socket, head) => {
         const { pathname, query } = url.parse(request.url, true);
-
+        console.log('test'); 
         console.log(pathname, query); 
         // 檢查路徑是否符合 WebSocket 的路徑
         if (pathname === '/ws') {

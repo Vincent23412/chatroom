@@ -36,7 +36,6 @@ const login = async (req, res) => {
         const user = result.rows[0];
         // console.log(user);  
         const isValidPassword = await bcrypt.compare(password, user.password); 
-        
         if (isValidPassword)
         {
             const token = jwt.sign({userId:user.id, username:user.username}, secretKey, {expiresIn:'1h'}); 
@@ -47,6 +46,7 @@ const login = async (req, res) => {
         }
         else
         {
+            console.log('wegwe'); 
             res.status(404).send({
                 status:"error"
         }); 

@@ -101,26 +101,31 @@ function register() {
 
 // 建立 WebSocket 连接
 function connectWebSocket() {
+  log.textContent += 'gwgew'; 
+
   if (!jwtToken && localStorage.username !== 'visitor') {
     log.textContent += '尚未登录，无法建立 WebSocket 连接。\n';
     return;
   }
+  log.textContent += 'test0'; 
 
   // 檢查並關閉現有 WebSocket 連接（如果存在）
-  if (socket && socket.readyState === WebSocket.OPEN) {
-    socket.close();
-  }
+  // if (typeof socket !== 'undefined' && socket.readyState === WebSocket.OPEN) {
+  //   socket.close();
+  // }
+  log.textContent += 'test1'; 
 
   // 初始化 WebSocket 連接
-  socket = new WebSocket(
-    window.location.hostname === 'localhost'
-      ? `ws://localhost:8000/ws`
-      : `wss://chatroom-3024.onrender.com/ws`
-  );
+  const socket = new WebSocket(
+  window.location.hostname === 'localhost'
+    ? `ws://localhost:8000/ws` // 本地開發時使用本地端點
+    : 'wss://77f2-120-126-194-249.ngrok-free.app'
+);
+  log.textContent += 'test2'; 
 
   // 当连接打开时
   socket.addEventListener('open', () => {
-    log.textContent += 'WebSocket 连接已建立。\n';
+    log.textContent += 'WebSocket 连接已建立。\n' + window.location.hostname;
   });
 
   // 接收服务器消息
