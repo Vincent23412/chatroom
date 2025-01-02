@@ -9,6 +9,7 @@ const pool = require('./db');
 const dotenv = require('dotenv');
 dotenv.config(); 
 const auth = require('./auth'); 
+const {liveData} = require('./live'); 
 
 const app = express(); 
 
