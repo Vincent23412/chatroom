@@ -1,4 +1,5 @@
-職綁直播&博弈APP  
+職綁直播&博弈APP    
+  
 軟體介紹：https://www.canva.com/design/DAGbBxGpcmA/z1vaWffcyAK-7ChhxRGCFw/edit  
 
 聊天: https://github.com/Vincent23412/chatroom  
@@ -111,7 +112,9 @@ WebSocket /ws：即時聊天連接
 實際操作截圖  
 
 ![image](https://github.com/user-attachments/assets/2646d80c-6114-4c2e-aee3-d91549547f5b)  
+  
 ![image](https://github.com/user-attachments/assets/37bdd3db-057b-4e9b-aad4-cee3eb15a33d)  
+  
 ![image](https://github.com/user-attachments/assets/19167871-2c10-427a-8274-fd14640d53bd)  
 
 
