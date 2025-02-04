@@ -1,10 +1,8 @@
 import express from "express";
 import morgan from "morgan";
-import WebSocket from "ws";
 import http from "http";
 import setupWebSocket from "./api/webSocket.js";
 import cors from "cors";
-import { Pool } from "pg";
 import dotenv from "dotenv";
 import authRouter from "./api/routes/authRouter.js";
 import liveRouter from "./api/routes/liveRouter.js";

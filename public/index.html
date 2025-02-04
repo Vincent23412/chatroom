@@ -1,32 +1,94 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <title>index</title>
+  <title>WebSocket 範例</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f7f7f7;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      color: #333;
+    }
+    input, button {
+      font-size: 1rem;
+      padding: 8px;
+      margin: 5px 0;
+    }
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      cursor: pointer;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #log {
+      background-color: #eee;
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-top: 15px;
+      height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+    .section {
+      margin-bottom: 20px;
+    }
+  </style>
 </head>
 <body>
-  <h1>WebSocket</h1>
+  <div class="container">
+    <h1>WebSocket 範例</h1>
+    
+    <!-- 登入部分 -->
+    <div class="section">
+      <h2>登入</h2>
+      <input type="text" id="loginUsername" placeholder="輸入使用者名稱">
+      <input type="password" id="loginPassword" placeholder="輸入密碼">
+      <button id="loginButton">登入</button>
+    </div>
+    
+    <!-- 註冊部分 -->
+    <div class="section">
+      <h2>註冊</h2>
+      <input type="text" id="registerUsername" placeholder="輸入使用者名稱">
+      <input type="password" id="registerPassword" placeholder="輸入密碼">
+      <button id="registerButton">註冊</button>
+    </div>
+    
+    <!-- WebSocket 訊息部分 -->
+    <div class="section">
+      <h2>傳送訊息</h2>
+      <input type="text" id="messageInput" placeholder="輸入訊息">
+      <button id="sendButton">傳送</button>
+      <button id="closeButton">斷開連線</button>
+      <button id="closeAllButton">全部關閉</button>
+    </div>
+    
+    <pre id="log"></pre>
+  </div>
   
-  <!-- 登录部分 -->
-  <h2>登录</h2>
-  <input type="text" id="loginUsername" placeholder="输入用户名">
-  <input type="password" id="loginPassword" placeholder="输入密码">
-  <button id="loginButton">登录</button>
-
-  <!-- 注册部分 -->
-  <h2>注册</h2>
-  <input type="text" id="registerUsername" placeholder="输入用户名">
-  <input type="password" id="registerPassword" placeholder="输入密码">
-  <button id="registerButton">注册</button>
-
-  <!-- WebSocket 消息部分 -->
-  <h2>发送消息</h2>
-  <input type="text" id="messageInput" placeholder="输入消息">
-  <button id="sendButton">发送</button>
-  <button id="closeButton">断开连接</button>
-  <button id="closeAllButton">关闭全部</button>
-
-  <pre id="log"></pre>
   <script>
     const log = document.getElementById('log');
     const messageInput = document.getElementById('messageInput');
@@ -34,167 +96,154 @@
     const closeButton = document.getElementById('closeButton');
 
     let jwtToken = '';
-    let socket = null; // 定義 socket 為全局變量
+    let socket = null; // 定義 socket 為全域變數
 
-// 登录
-function login() {
-  const username = document.getElementById('loginUsername').value;
-  const password = document.getElementById('loginPassword').value;
+    // 登入
+    function login() {
+      const username = document.getElementById('loginUsername').value;
+      const password = document.getElementById('loginPassword').value;
 
-  fetch('/auth/login', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      username,
-      password
-    })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.token) {
-      jwtToken = data.token;
-      log.textContent += `登录成功，获得 token：${jwtToken}\n`;
-      localStorage.username = data.username;
-      connectWebSocket();
-    } else if (data.username === 'visitor') {
-      log.textContent += `使用游客模式连接。\n`;
-      localStorage.username = data.username;
-      connectWebSocket();
-    } else {
-      log.textContent += '登录失败。\n';
+      fetch('/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.token) {
+          jwtToken = data.token;
+          log.textContent += `登入成功，獲得 token：${jwtToken}\n`;
+          localStorage.username = data.username;
+          connectWebSocket();
+        } else if (data.username === 'visitor') {
+          log.textContent += '使用訪客模式連線。\n';
+          localStorage.username = data.username;
+          connectWebSocket();
+        } else {
+          log.textContent += '登入失敗。\n';
+        }
+      })
+      .catch(error => {
+        log.textContent += `登入請求失敗：${error.message}\n`;
+      });
     }
-  })
-  .catch(error => {
-    log.textContent += `登录请求失败：${error.message}\n`;
-  });
-}
 
-// 注册
-function register() {
-  const username = document.getElementById('registerUsername').value;
-  const password = document.getElementById('registerPassword').value;
+    // 註冊
+    function register() {
+      const username = document.getElementById('registerUsername').value;
+      const password = document.getElementById('registerPassword').value;
 
-  fetch('/auth/register', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      username,
-      password
-    })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.message == 'success') {
-      log.textContent += `注册成功，欢迎 ${data.username}！请登录。\n`;
-    } else {
-      log.textContent += '注册失败，请重试。\n';
+      fetch('/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message === 'success') {
+          log.textContent += `註冊成功，歡迎 ${data.username}！請登入。\n`;
+        } else {
+          log.textContent += '註冊失敗，請重試。\n';
+        }
+      })
+      .catch(error => {
+        log.textContent += `註冊請求失敗：${error.message}\n`;
+      });
     }
-  })
-  .catch(error => {
-    log.textContent += `注册请求失败：${error.message}\n`;
-  });
-}
 
-// 建立 WebSocket 连接
-function connectWebSocket() {
-  log.textContent += 'gwgew'; 
+    // 建立 WebSocket 連線
+    function connectWebSocket() {
+      log.textContent += '嘗試建立連線...\n';
 
-  if (!jwtToken && localStorage.username !== 'visitor') {
-    log.textContent += '尚未登录，无法建立 WebSocket 连接。\n';
-    return;
-  }
-  log.textContent += 'test0'; 
-
-  // 檢查並關閉現有 WebSocket 連接（如果存在）
-  if (socket && socket.readyState === WebSocket.OPEN) {
-    socket.close();
-  }
-
-  log.textContent += 'test1'; 
-
-  // 初始化 WebSocket 連接
-  socket = new WebSocket(
-     `ws://localhost/ws?username=1`
-  );
-  log.textContent += 'test2'; 
-
-  // 当连接打开时
-  socket.addEventListener('open', () => {
-    log.textContent += 'WebSocket 连接已建立。\n' + window.location.hostname;
-  });
-
-  // 接收服务器消息
-  socket.addEventListener('message', (event) => {
-    try {
-      const data = JSON.parse(event.data);
-      console.log(data);
-
-      if (data.context === 'user') {
-        log.textContent += `使用者代号：${data.uuid}\n`;
-      } else if (data.context === 'message') {
-        log.textContent += `接收消息：${data.word}\n`;
-      } else if (data.context === 'close') {
-        log.textContent += `关闭连接：${data.uuid}\n`;
+      if (!jwtToken && localStorage.username !== 'visitor') {
+        log.textContent += '尚未登入，無法建立 WebSocket 連線。\n';
+        return;
       }
-    } catch (error) {
-      log.textContent += `解析消息时出错：${error.message}\n`;
-      console.error('Message parsing error:', error);
+
+      // 若已存在連線則先關閉
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        console.log('Close existing WebSocket connection.');
+        socket.close();
+      }
+
+      // 初始化 WebSocket 連線（此處請根據實際 IP 與參數進行修改）
+      socket = new WebSocket(`ws://localhost:8000/ws?username=${localStorage.username}`);
+
+      console.log('WebSocket connection created:', socket);
+      // 當連線開啟時
+      socket.addEventListener('open', () => {
+        log.textContent += `WebSocket 連線已建立。(${window.location.hostname})\n`;
+      });
+
+      // 接收伺服器訊息
+      socket.addEventListener('message', (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log(data);
+
+          if (data.context === 'user') {
+            log.textContent += `使用者代號：${data.uuid}\n`;
+          } else if (data.context === 'message') {
+            log.textContent += `接收訊息：${data.word}\n`;
+          } else if (data.context === 'close') {
+            log.textContent += `關閉連線：${data.uuid}\n`;
+          }
+        } catch (error) {
+          log.textContent += `解析訊息時出錯：${error.message}\n`;
+          console.error('Message parsing error:', error);
+        }
+      });
+
+      // 處理連線關閉
+      socket.addEventListener('close', () => {
+        log.textContent += 'WebSocket 連線已關閉。\n';
+        socket = null;
+      });
+
+      // 處理錯誤
+      socket.addEventListener('error', (event) => {
+        log.textContent += `WebSocket 發生錯誤：${event.message}\n`;
+        console.error('WebSocket error:', event);
+      });
     }
-  });
 
-  // 处理连接关闭
-  socket.addEventListener('close', () => {
-    log.textContent += 'WebSocket 连接已关闭。\n';
-    socket = null;
-  });
+    // 傳送訊息到伺服器
+    sendButton.addEventListener('click', () => {
+      const message = messageInput.value;
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        const messageData = {
+          token: jwtToken,
+          message: message,
+          username: localStorage.username, 
+          sticker: 1
+        };
+        socket.send(JSON.stringify(messageData));
+        log.textContent += `${localStorage.username} 傳送訊息：${message}\n`;
+      } else {
+        log.textContent += '無法傳送訊息，WebSocket 未連線。\n';
+      }
+      messageInput.value = '';
+    });
 
-  // 处理错误
-  socket.addEventListener('error', (event) => {
-    log.textContent += `WebSocket 发生错误：${event.message}\n`;
-    console.error('WebSocket error:', event);
-  });
-}
+    // 手動關閉 WebSocket 連線
+    closeButton.addEventListener('click', () => {
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.close();
+        log.textContent += '已手動關閉 WebSocket 連線。\n';
+      } else {
+        log.textContent += 'WebSocket 連線已關閉或未建立。\n';
+      }
+      localStorage.username = '';
+    });
 
-// 发送消息到服务器
-sendButton.addEventListener('click', () => {
-  const message = messageInput.value;
-  if (socket && socket.readyState === WebSocket.OPEN) {
-    console.log("send message");
-    const messageData = {
-      token: jwtToken,
-      message: message,
-      username: localStorage.username, 
-      sticker: 1
-    };
-    socket.send(JSON.stringify(messageData));
-    log.textContent += `${localStorage.username} 发送消息：${message}\n`;
-  } else {
-    log.textContent += '无法发送消息，WebSocket 未连接。\n';
-  }
-  messageInput.value = '';
-});
-
-// 手动关闭 WebSocket 连接
-closeButton.addEventListener('click', () => {
-  if (socket && socket.readyState === WebSocket.OPEN) {
-    socket.close();
-    log.textContent += '已手动关闭 WebSocket 连接。\n';
-  } else {
-    log.textContent += 'WebSocket 连接已关闭或未建立。\n';
-  }
-});
-
-// 登录按钮点击事件
-document.getElementById('loginButton').addEventListener('click', login);
-// 注册按钮点击事件
-document.getElementById('registerButton').addEventListener('click', register);
-
-
+    // 登入按鈕點擊事件
+    document.getElementById('loginButton').addEventListener('click', login);
+    // 註冊按鈕點擊事件
+    document.getElementById('registerButton').addEventListener('click', register);
   </script>
-
 </body>
 </html>
