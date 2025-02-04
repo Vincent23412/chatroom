@@ -41,7 +41,7 @@ function login() {
   const username = document.getElementById('loginUsername').value;
   const password = document.getElementById('loginPassword').value;
 
-  fetch('/login', {
+  fetch('/auth/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ function register() {
   const username = document.getElementById('registerUsername').value;
   const password = document.getElementById('registerPassword').value;
 
-  fetch('/register', {
+  fetch('/auth/register', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -118,7 +118,7 @@ function connectWebSocket() {
 
   // 初始化 WebSocket 連接
   socket = new WebSocket(
-     `ws://10.201.7.21:7999/ws?username=1`
+     `ws://localhost/ws?username=1`
   );
   log.textContent += 'test2'; 
 
