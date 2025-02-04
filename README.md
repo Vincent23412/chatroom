@@ -1,4 +1,4 @@
-職綁直播&博弈APP    
+職棒直播&博弈APP    
   
 軟體介紹：https://www.canva.com/design/DAGbBxGpcmA/z1vaWffcyAK-7ChhxRGCFw/edit  
 
