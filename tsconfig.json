@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "removeComments": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}

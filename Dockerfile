@@ -11,7 +11,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # 安裝相依套件
-RUN npm install
+RUN yarn install
 
 # 複製應用源代碼到工作目錄
 COPY . .
@@ -20,4 +20,4 @@ COPY . .
 EXPOSE 8000
 
 # 設定應用的啟動命令
-CMD ["npm", "run", "dev"]
+CMD ["yarn", "dev"]
